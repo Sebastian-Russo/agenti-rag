@@ -1,10 +1,3 @@
-
-"""
-All the knobs in one place.
-The three agentic loop controls at the bottom are what make this project different
-from HP RAG — they govern the search-evaluate-retry behavior you'll see in the later files.
-"""
-
 import os
 from dotenv import load_dotenv
 
@@ -12,7 +5,12 @@ load_dotenv()
 
 # Anthropic
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-CLAUDE_MODEL = "claude-opus-4-6"
+
+# Use a lightweight model for planning and evaluation (fast, cheap)
+CLAUDE_MODEL_FAST  = "claude-haiku-4-5-20251001"
+
+# Use a stronger model for the final answer (quality matters here)
+CLAUDE_MODEL_SMART = "claude-sonnet-4-6"
 
 # Embeddings
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
