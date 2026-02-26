@@ -45,9 +45,29 @@ class VectorStore:
         self._all_chunks = None
 
     def build_from_pdfs(self, pdf_dir: str = "data") -> None:
-        if self.collection.count() > 0:
-            print(f"Vector store already has {self.collection.count()} chunks. Skipping build.")
-            return
+        current_count = self.collection.count()
+        if current_count > 0:
+            print(f"Vector store already has {current_count} chunks. Checking for missing chunks...")
+            # Check if we need to continue processing
+            pdf_paths = glob.glob(os.path.join(pdf_dir, "*.pdf"))
+            if not pdf_paths:
+                raise FileNotFoundError(f"No PDFs found in '{pdf_dir}/'")
+
+            # Calculate expected total chunks
+            expected_chunks = 0
+            for pdf_path in sorted(pdf_paths):
+                text = _extract_text_from_pdf(pdf_path)
+                chunks = _chunk_text(text)
+                expected_chunks += len(chunks)
+
+            if current_count >= expected_chunks:
+                print(f"Vector store is complete with {current_count} chunks. Skipping build.")
+                return
+            else:
+                print(f"Vector store has {current_count}/{expected_chunks} chunks. Rebuilding to ensure consistency.")
+                # Clear and rebuild
+                self.client.delete_collection(COLLECTION_NAME)
+                self.collection = self.client.get_or_create_collection(COLLECTION_NAME)
 
         pdf_paths = glob.glob(os.path.join(pdf_dir, "*.pdf"))
         if not pdf_paths:
@@ -64,9 +84,18 @@ class VectorStore:
                 all_ids.append(f"{book_name}_chunk_{i}")
 
         print(f"Embedding {len(all_chunks)} chunks ...")
-        embeddings = self.embedder.encode(all_chunks, show_progress_bar=True).tolist()
-        self.collection.add(documents=all_chunks, embeddings=embeddings, ids=all_ids)
-        print(f"Stored {len(all_chunks)} chunks.")
+        batch_size = 1000
+        for i in range(0, len(all_chunks), batch_size):
+            batch_end = min(i + batch_size, len(all_chunks))
+            batch_chunks = all_chunks[i:batch_end]
+            batch_ids = all_ids[i:batch_end]
+
+            print(f"Processing batch {i//batch_size + 1}/{(len(all_chunks) + batch_size - 1)//batch_size} ({len(batch_chunks)} chunks)...")
+            batch_embeddings = self.embedder.encode(batch_chunks, show_progress_bar=True).tolist()
+            self.collection.add(documents=batch_chunks, embeddings=batch_embeddings, ids=batch_ids)
+            print(f"Saved batch {i//batch_size + 1}")
+
+        print(f"Stored {len(all_chunks)} chunks total.")
 
     def _ensure_bm25(self) -> None:
         if self._bm25 is not None:
