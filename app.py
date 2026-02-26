@@ -4,7 +4,7 @@ from src.rag_pipeline import AgenticRAGPipeline
 
 app      = Flask(__name__)
 CORS(app)
-pipeline = AgenticRAGPipeline(pdf_dir="data")
+pipeline = AgenticRAGPipeline(pdf_dir="data/raw")
 
 
 @app.route("/health", methods=["GET"])
