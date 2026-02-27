@@ -62,6 +62,7 @@ keywords or a different angle. If score >= {RELEVANCE_THRESHOLD}, set it to null
     )
 
     raw = response.content[0].text.strip()
+    raw = raw.replace("```json", "").replace("```", "").strip()
 
     try:
         data  = json.loads(raw)
