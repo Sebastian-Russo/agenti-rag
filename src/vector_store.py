@@ -47,27 +47,8 @@ class VectorStore:
     def build_from_pdfs(self, pdf_dir: str = "data") -> None:
         current_count = self.collection.count()
         if current_count > 0:
-            print(f"Vector store already has {current_count} chunks. Checking for missing chunks...")
-            # Check if we need to continue processing
-            pdf_paths = glob.glob(os.path.join(pdf_dir, "*.pdf"))
-            if not pdf_paths:
-                raise FileNotFoundError(f"No PDFs found in '{pdf_dir}/'")
-
-            # Calculate expected total chunks
-            expected_chunks = 0
-            for pdf_path in sorted(pdf_paths):
-                text = _extract_text_from_pdf(pdf_path)
-                chunks = _chunk_text(text)
-                expected_chunks += len(chunks)
-
-            if current_count >= expected_chunks:
-                print(f"Vector store is complete with {current_count} chunks. Skipping build.")
-                return
-            else:
-                print(f"Vector store has {current_count}/{expected_chunks} chunks. Rebuilding to ensure consistency.")
-                # Clear and rebuild
-                self.client.delete_collection(COLLECTION_NAME)
-                self.collection = self.client.get_or_create_collection(COLLECTION_NAME)
+            print(f"Vector store already has {current_count} chunks. Assuming complete. Skipping build.")
+            return
 
         pdf_paths = glob.glob(os.path.join(pdf_dir, "*.pdf"))
         if not pdf_paths:

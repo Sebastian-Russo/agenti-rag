@@ -51,7 +51,7 @@ def retrieve_for_subquery(sub_query: str, store: VectorStore) -> RetrievalOutcom
 
         print(f"  [RetrievalAgent] Score: {evaluation.score}/10 — {evaluation.reason}")
 
-        # Step 3: decide
+        # Step 3: decide # how? by score, by reformulated query
         if evaluation.is_sufficient:
             outcome.final_chunks = chunks
             outcome.final_score  = evaluation.score

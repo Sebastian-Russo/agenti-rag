@@ -35,6 +35,7 @@ Example: ["sub-query one", "sub-query two"]"""
         model      = CLAUDE_MODEL_FAST,
         max_tokens = 300,
         messages   = [{"role": "user", "content": prompt}]
+        # qustion user asks, sends to anthropic, breaks into sub-queries, returns JSON array of strings
     )
 
     raw = response.content[0].text.strip()

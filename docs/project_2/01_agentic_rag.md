@@ -163,3 +163,18 @@ But here's why it's not really cheating: this is how production AI systems actua
 The alternative would be training a small classifier to score chunk relevance, which would take thousands of labeled examples and still perform worse. Using Claude for these language tasks is just the right tool for the job.
 
 The honest framing: you're building the architecture and logic, Claude provides the language intelligence inside specific steps. That division of responsibility is the real skill here.
+
+
+## Difference between Evaluator and Retrieval Agent
+
+**Evaluator** — only has one job: look at chunks and score them
+It takes a sub-query and some chunks, asks Claude "are these good enough?", and returns a score plus optionally a reformulated query. That's it. It doesn't know what happens before or after. It has no memory of previous attempts. It just judges what it's handed.
+
+**Retrieval agent** — runs the loop and makes decisions based on the evaluator's output
+It's the one that actually does something with the evaluation. It decides whether to accept the chunks, whether to retry, which reformulated query to use, how many attempts have been made, and what the best attempt was if we run out of retries. It's the manager.
+
+**Analogy**
+Think of a job interview process. The evaluator is the hiring rubric — a scorecard that says "did the candidate meet the bar?" The retrieval agent is the recruiter — they run the interview, read the scorecard, and decide "do we move forward or bring in another candidate?"
+The rubric doesn't schedule interviews. The recruiter doesn't define what a good candidate looks like. Separate responsibilities.
+
+In code terms: the evaluator is a pure function that takes inputs and returns a judgment. The retrieval agent is a stateful loop that tracks attempts, calls the evaluator, and acts on the result.
